@@ -99,60 +99,6 @@ The API will be available at:
 - **GraphQL Playground**: http://localhost:3000/graphql
 - **Health Check**: http://localhost:3000
 
-### Database Management with pgAdmin
-
-The Docker setup includes pgAdmin for easy database management and inspection:
-
-```bash
-# Start database and pgAdmin together
-docker-compose up -d postgres pgadmin
-
-# Or start all services including backend
-npm run docker:up
-```
-
-**Access pgAdmin:**
-- **URL**: http://localhost:8080
-- **Email**: admin@maggie.com
-- **Password**: admin
-
-**Connect to PostgreSQL Database:**
-1. Open pgAdmin at http://localhost:8080
-2. Right-click "Servers" → "Register" → "Server"
-3. **General Tab:**
-   - Name: `Maggie Database`
-4. **Connection Tab:**
-   - Host name/address: `postgres` (Docker network) or `localhost` (if accessing from host)
-   - Port: `5432`
-   - Maintenance database: `maggie_db`
-   - Username: `postgres`
-   - Password: `postgres`
-
-**What You Can Do in pgAdmin:**
-- **Browse Tables**: View `post_group` and `post` tables with all seeded data
-- **Run Queries**: Execute custom SQL queries to analyze data
-- **View Relationships**: Explore foreign key relationships between tables
-- **Inspect Data**: Browse the 28+ post groups and 67+ posts created by seeding
-- **Database Schema**: View complete table structures, indexes, and constraints
-
-**Sample Queries to Try:**
-```sql
--- View all post groups with their status distribution
-SELECT status, COUNT(*) as count FROM post_group GROUP BY status;
-
--- See posts by platform
-SELECT platform, COUNT(*) as count FROM post GROUP BY platform;
-
--- Find posts with engagement metrics
-SELECT pg.content, p.platform, p.likes, p.comments, p.shares 
-FROM post_group pg 
-JOIN post p ON pg.id = p."postGroupId" 
-WHERE p.likes > 0;
-
--- Posts by social pillar
-SELECT pillar, COUNT(*) as count FROM post_group GROUP BY pillar;
-```
-
 ### Database Seeding
 
 The application includes comprehensive sample data for testing:
@@ -186,6 +132,59 @@ npm run seed
 - Various dimensions: 800x600, 600x800, 1000x600, 800x800, 1200x800
 - Multiple images for select posts
 - Randomized, high-quality placeholder images
+
+### Database Management with pgAdmin
+
+The Docker setup includes pgAdmin for easy database management and inspection:
+
+```bash
+# Start database and pgAdmin together
+docker-compose up -d postgres pgadmin
+
+# Or start all services including backend
+npm run docker:up
+```
+
+**Access pgAdmin:**
+- **URL**: http://localhost:8080
+- **Password**: password
+
+**Connect to PostgreSQL Database:**
+1. Open pgAdmin at http://localhost:8080
+2. Right-click "Servers" → "Register" → "Server"
+3. **General Tab:**
+   - Name: `Maggie Database`
+4. **Connection Tab:**
+   - Host name/address: `postgres` (Docker network) or `localhost` (if accessing from host)
+   - Port: `5432`
+   - Maintenance database: `maggie_db`
+   - Username: `postgres`
+   - Password: `postgres`
+
+**What You Can Do in pgAdmin:**
+- **Browse Tables**: View `post_group` and `post` tables with all seeded data
+- **Run Queries**: Execute custom SQL queries to analyze data
+- **View Relationships**: Explore foreign key relationships between tables
+- **Inspect Data**: Browse the 28+ post groups and 67+ posts created by seeding
+- **Database Schema**: View complete table structures, indexes, and constraints
+
+**Sample Queries to Try:**
+```sql
+-- View all post groups with their status distribution
+SELECT status, COUNT(*) as count FROM post_groups GROUP BY status;
+
+-- See posts by platform
+SELECT platform, COUNT(*) as count FROM posts GROUP BY platform;
+
+-- Find posts with engagement metrics
+SELECT pg.content, p.platform, p.likes, p.comments, p.shares 
+FROM post_groups pg 
+JOIN posts p ON pg.id = p."postGroupId" 
+WHERE p.likes > 0;
+
+-- Posts by social pillar
+SELECT pillar, COUNT(*) as count FROM post_groups GROUP BY pillar;
+```
 
 ## GraphQL API
 
