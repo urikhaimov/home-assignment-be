@@ -1,0 +1,111 @@
+scalar DateTime
+
+enum PostStatus {
+  PENDING_REVIEW
+  SCHEDULED
+  PUBLISHED
+}
+
+enum SocialPlatform {
+  FACEBOOK
+  INSTAGRAM
+  LINKEDIN
+}
+
+enum SocialPillar {
+  AUTHORITY
+  COMMUNITY
+  EDUCATION
+  ENTERTAINMENT
+  INSPIRATION
+}
+
+type PostGroup {
+  id: ID!
+  content: String!
+  mediaUrls: [String!]!
+  pillar: SocialPillar!
+  status: PostStatus!
+  scheduledDate: DateTime!
+  publishedDate: DateTime
+  posts: [Post!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Post {
+  id: ID!
+  platform: SocialPlatform!
+  caption: String!
+  likes: Int!
+  comments: Int!
+  shares: Int!
+  postGroup: PostGroup!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type PostStats {
+  planned: Int!
+  pending: Int!
+  scheduled: Int!
+  published: Int!
+}
+
+# Pagination types following Relay specification
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type PostGroupEdge {
+  node: PostGroup!
+  cursor: String!
+}
+
+type PostGroupConnection {
+  edges: [PostGroupEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input PaginationInput {
+  first: Int
+  after: String
+  last: Int
+  before: String
+}
+
+input PostGroupFilters {
+  status: PostStatus
+  statuses: [PostStatus!]
+  pillar: SocialPillar
+  pillars: [SocialPillar!]
+}
+
+input CreatePostInput {
+  platform: SocialPlatform!
+  caption: String!
+}
+
+input CreatePostGroupInput {
+  content: String!
+  mediaUrls: [String!]!
+  pillar: SocialPillar!
+  scheduledDate: String!
+  posts: [CreatePostInput!]!
+}
+
+type Query {
+  postsPendingReview(pagination: PaginationInput): PostGroupConnection!
+  postGroupById(id: ID!): PostGroup
+  allPostGroups(pagination: PaginationInput, filters: PostGroupFilters): PostGroupConnection!
+  postStats: PostStats!
+}
+
+type Mutation {
+  createPostGroup(input: CreatePostGroupInput!): PostGroup!
+  approvePostGroup(id: ID!): PostGroup!
+}
