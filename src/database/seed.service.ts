@@ -222,10 +222,10 @@ export class SeedService {
       const postGroup: Partial<PostGroup> = {
         content: contentItem.content,
         mediaUrls: [
-          `https://picsum.photos/${dimension}?random=${imageId}`,
+          `https://picsum.photos/id/${imageId}/${dimension}`,
           // Some posts have multiple images
           ...(index % 4 === 0
-            ? [`https://picsum.photos/${dimension}?random=${imageId + 50}`]
+            ? [`https://picsum.photos/id/${imageId + 50}/${dimension}`]
             : []),
         ],
         pillar: contentItem.pillar,
