@@ -55,6 +55,28 @@ export class PostGroupService {
     return this.executePaginatedQuery(queryBuilder, args);
   }
 
+  private async executePaginatedQuery(
+    queryBuilder: SelectQueryBuilder<PostGroup>,
+    args: PaginationArgs,
+  ): Promise<PostGroupConnection> {
+    const { first, after, last, before } = args;
+
+    const totalCount = await queryBuilder.getCount();
+
+    const { take, skip } = PaginationUtil.getPagingParams(
+      first || undefined,
+      after || undefined,
+      last || undefined,
+      before || undefined,
+      totalCount,
+    );
+
+    queryBuilder.skip(skip).take(take);
+    const postGroups = await queryBuilder.getMany();
+
+    return PaginationUtil.buildConnection(postGroups, skip, totalCount);
+  }
+
   async findById(id: string): Promise<PostGroup | null> {
     const postGroup = await this.postGroupRepository.findOne({
       where: { id },
@@ -64,17 +86,9 @@ export class PostGroupService {
     return postGroup || null;
   }
 
-  async findAll(): Promise<PostGroup[]> {
-    return this.postGroupRepository.find({
-      relations: ['posts'],
-      order: { createdAt: 'DESC' },
-    });
-  }
-
   private createBaseQueryBuilder(): SelectQueryBuilder<PostGroup> {
     return this.postGroupRepository
       .createQueryBuilder('postGroup')
-      .leftJoinAndSelect('postGroup.posts', 'posts')
       .orderBy('postGroup.createdAt', 'DESC')
       .addOrderBy('postGroup.id', 'ASC'); // Secondary sort for stable pagination
   }
@@ -110,57 +124,6 @@ export class PostGroupService {
         pillar: filters.pillar,
       });
     }
-  }
-
-  private async executePaginatedQuery(
-    queryBuilder: SelectQueryBuilder<PostGroup>,
-    args: PaginationArgs,
-  ): Promise<PostGroupConnection> {
-    const { first, last, after, before } = args;
-
-    // Apply cursor filtering
-    if (after) {
-      const { createdAt, id } = PaginationUtil.decodeCursor(after);
-      queryBuilder.andWhere(
-        '(postGroup.createdAt < :afterDate OR (postGroup.createdAt = :afterDate AND postGroup.id > :afterId))',
-        { afterDate: createdAt, afterId: id },
-      );
-    }
-
-    if (before) {
-      const { createdAt, id } = PaginationUtil.decodeCursor(before);
-      queryBuilder.andWhere(
-        '(postGroup.createdAt > :beforeDate OR (postGroup.createdAt = :beforeDate AND postGroup.id < :beforeId))',
-        { beforeDate: createdAt, beforeId: id },
-      );
-    }
-
-    // Apply limit
-    const limit = PaginationUtil.getPageSize(args);
-    queryBuilder.limit(limit + 1); // Request one extra to determine hasNextPage
-
-    // Get total count (for pagination info)
-    const totalCount = await queryBuilder.getCount();
-
-    // Execute query
-    const postGroups = await queryBuilder.getMany();
-
-    // Determine if we have more results
-    const hasMore = postGroups.length > limit;
-    if (hasMore) {
-      postGroups.pop(); // Remove the extra item
-    }
-
-    // Handle backward pagination (reverse order)
-    if (last && !first) {
-      postGroups.reverse();
-    }
-
-    return PaginationUtil.buildPostGroupConnection(
-      postGroups,
-      totalCount,
-      args,
-    );
   }
 
   async getStats(): Promise<PostStats> {

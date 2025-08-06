@@ -1,6 +1,14 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
 import { PostGroupService } from '../services/post-group.service';
 import { PostGroup } from '../entities/post-group.entity';
+import { Post } from '../entities/post.entity';
 import {
   IQuery,
   IMutation,
@@ -11,10 +19,16 @@ import {
   PostGroupConnection,
   PostGroupFilters,
 } from '../graphql/graphql.types';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Resolver('PostGroup')
 export class PostGroupResolver implements IQuery, IMutation {
-  constructor(private readonly postGroupService: PostGroupService) {}
+  constructor(
+    private readonly postGroupService: PostGroupService,
+    @InjectRepository(Post)
+    private readonly postRepository: Repository<Post>,
+  ) {}
 
   @Query()
   async postsPendingReview(
@@ -57,5 +71,12 @@ export class PostGroupResolver implements IQuery, IMutation {
   @Mutation()
   async approvePostGroup(@Args('id') id: string): Promise<PostGroup> {
     return this.postGroupService.approve(id);
+  }
+
+  @ResolveField('posts')
+  async posts(@Parent() postGroup: PostGroup): Promise<Post[]> {
+    return this.postRepository.find({
+      where: { postGroupId: postGroup.id },
+    });
   }
 }
