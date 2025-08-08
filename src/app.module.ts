@@ -1,3 +1,4 @@
+// src/app.module.ts
 import { Module, ValidationPipe } from '@nestjs/common';
 import { APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -15,9 +16,7 @@ import { DateTimeScalar } from './scalars/date-time.scalar';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST || 'localhost',
@@ -34,6 +33,7 @@ import { DateTimeScalar } from './scalars/date-time.scalar';
       typePaths: [process.cwd() + '/src/**/*.graphql'],
       playground: true,
       introspection: true,
+      debug: true, // <-- Enable debugging for better error visibility
       definitions: {
         path: process.cwd() + '/src/graphql/graphql.types.ts',
         outputAs: 'interface',
